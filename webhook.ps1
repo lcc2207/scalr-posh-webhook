@@ -19,9 +19,8 @@ Function SimpleListener($prefixes)
     "Listening..."
     $context = $listener.GetContext()
     $request = $context.Request
-    ShowRequestData $request
     $response = $context.Response
-    $responseString = "ok"
+    $responseString = $(validate_request $request)
     $buffer = [System.Text.Encoding]::UTF8.GetBytes($responseString)
     $response.ContentLength64 = $buffer.Length
     $output = $response.OutputStream
@@ -30,6 +29,21 @@ Function SimpleListener($prefixes)
     $output.Close()
     $listener.Stop()
   }
+}
+
+Function validate_request($request)
+{
+  if (! $request.Headers["X-Signature"])
+  {
+    $cmdresponse = "403"
+  }
+  else
+  {
+    ShowRequestData $request
+    $cmdresponse = "ok"
+  }
+
+  return $cmdresponse
 }
 
 Function ShowRequestData($request)
@@ -49,6 +63,7 @@ Write $info
 $body.Close()
 $reader.Close()
 Write "starting script"
+Write $info.data.SCALR_EXTERNAL_IP
 start-job -FilePath "c:\scripts\test.ps1"
 }
 
