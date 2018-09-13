@@ -25,7 +25,6 @@ Function SimpleListener($prefixes)
     $response.ContentLength64 = $buffer.Length
     $output = $response.OutputStream
     $output.Write($buffer,0,$buffer.Length)
-
     $output.Close()
     $listener.Stop()
   }
@@ -39,8 +38,7 @@ Function validate_request($request)
   }
   else
   {
-    ShowRequestData $request
-    $cmdresponse = "ok"
+    $cmdresponse = $(ShowRequestData $request)
   }
 
   return $cmdresponse
@@ -62,9 +60,16 @@ $info = $reader.ReadToEnd() | ConvertFrom-JSON
 Write $info
 $body.Close()
 $reader.Close()
-Write "starting script"
-Write $info.data.SCALR_EXTERNAL_IP
-start-job -FilePath "c:\scripts\test.ps1"
+
+$job = start-job -FilePath "c:\scripts\dns.ps1" -ArgumentList $info.data.SCALR_INTERNAL_IP, $info.data.SCALR_SERVER_HOSTNAME
+if ((get-job $job.name).state -eq "Completed")
+ {
+    $status = 200
+ } else {
+    $status = 304
+ }
+ receive-job $job.name
+ return $status
 }
 
 SimpleListener("http://*:5000/")
