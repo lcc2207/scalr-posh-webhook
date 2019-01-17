@@ -63,3 +63,8 @@ if ((get-job $job.name).state -eq "Completed")
 }
 
 SimpleListener("http://*:5000/")
+
+
+
+ # test.ps1 from example above
+ # Write-Output  '{"hostname": "test111"}'
